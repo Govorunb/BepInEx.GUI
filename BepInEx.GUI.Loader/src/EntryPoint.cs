@@ -41,7 +41,7 @@ internal static class EntryPoint
             GetField("ConfigConsoleEnabled",
             BindingFlags.Static | BindingFlags.Public).GetValue(null);
 
-        if (consoleConfig.Value)
+        if (consoleConfig.Value && !Config.OpenEvenWhenBepInExConsoleIsEnabled.Value)
         {
             Log.Info("BepInEx regular console is enabled, aborting launch.");
         }
@@ -150,7 +150,8 @@ internal static class EntryPoint
         {
             if (logListener is DiskLogListener diskLogListener)
             {
-                return diskLogListener.FileFullPath;
+                return ((diskLogListener.LogWriter as StreamWriter)?.BaseStream as FileStream)?.Name
+                    ?? Path.Combine(Paths.BepInExRootPath, "LogOutput.log");
             }
         }
 

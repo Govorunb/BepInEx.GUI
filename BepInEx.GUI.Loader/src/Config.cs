@@ -14,6 +14,10 @@ internal static class Config
     internal const string EnableBepInExGUIConfigDescription = "Enable the custom BepInEx GUI";
     internal static ConfigEntry<bool> EnableBepInExGUIConfig { get; private set; }
 
+    internal const string OpenEvenWhenBepInExConsoleIsEnabledConfigKey = "Open Even When BepInEx Console Is Enabled";
+    internal const string OpenEvenWhenBepInExConsoleIsEnabledConfigDescription = "By default, the GUI does not launch if the BepInEx console is enabled";
+    internal static ConfigEntry<bool> OpenEvenWhenBepInExConsoleIsEnabled { get; private set; }
+
     internal const string CloseWindowWhenGameLoadedConfigKey = "Close Window When Game Loaded";
     internal const string CloseWindowWhenGameLoadedConfigDescription = "Close the graphic user interface window when the game is loaded";
     internal static ConfigEntry<bool> CloseWindowWhenGameLoadedConfig { get; private set; }
@@ -28,6 +32,8 @@ internal static class Config
         File = new ConfigFile(ConfigFilePath, true);
 
         EnableBepInExGUIConfig = File.Bind("Settings", EnableBepInExGUIConfigKey, true, EnableBepInExGUIConfigDescription);
+
+        OpenEvenWhenBepInExConsoleIsEnabled = File.Bind("Settings", OpenEvenWhenBepInExConsoleIsEnabledConfigKey, false, OpenEvenWhenBepInExConsoleIsEnabledConfigDescription);
 
         CloseWindowWhenGameLoadedConfig = File.Bind("Settings", CloseWindowWhenGameLoadedConfigKey, false, CloseWindowWhenGameLoadedConfigDescription);
 

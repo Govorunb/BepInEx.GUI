@@ -23,7 +23,7 @@ public class CloseProcessOnChainloaderDone : ILogListener
             return;
         }
 
-        if (eventArgs.Data.ToString() == "Chainloader startup complete" && eventArgs.Level.Equals(LogLevel.Message))
+        if (eventArgs.Data?.ToString() == "Chainloader startup complete" && eventArgs.Level.Equals(LogLevel.Message))
         {
             if (Config.CloseWindowWhenGameLoadedConfig.Value)
             {
