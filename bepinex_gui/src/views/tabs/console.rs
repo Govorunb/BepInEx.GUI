@@ -307,7 +307,7 @@ impl ConsoleTab {
             return;
         }
 
-        let log_color = get_color_from_log_level(log, info_log_color);
+        let log_color = get_color_from_log_level(log, info_log_color, gui_config);
 
         let ui_log_entry = make_ui_log_entry(ui, log, log_color);
 
@@ -554,11 +554,16 @@ fn make_ui_log_entry(ui: &mut Ui, log: &mut BepInExLogEntry, log_color: Color32)
     ui_log_entry
 }
 
-fn get_color_from_log_level(log: &mut BepInExLogEntry, info_log_color: Color32) -> Color32 {
+const ORANGE: Color32 = Color32::from_rgb(255, 128, 0);
+fn get_color_from_log_level(log: &mut BepInExLogEntry, info_log_color: Color32, gui_config: &Config) -> Color32 {
     match log.level() {
-        LogLevel::None | LogLevel::Fatal | LogLevel::Error => Color32::RED,
-        LogLevel::Warning => Color32::YELLOW,
-        LogLevel::Message | LogLevel::Info | LogLevel::Debug | LogLevel::All => info_log_color,
+        LogLevel::None | LogLevel::Fatal => if gui_config.dark_mode {Color32::RED} else {Color32::DARK_RED},
+        LogLevel::Error => if gui_config.dark_mode {Color32::LIGHT_RED} else {Color32::RED},
+        LogLevel::Warning => if gui_config.dark_mode {Color32::YELLOW} else {ORANGE},
+        LogLevel::Message => info_log_color,
+        LogLevel::Info => if gui_config.dark_mode {Color32::LIGHT_GRAY} else {Color32::DARK_GRAY},
+        LogLevel::Debug => Color32::GRAY,
+        LogLevel::All => info_log_color,
     }
 }
 
