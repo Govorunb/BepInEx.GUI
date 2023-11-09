@@ -22,7 +22,7 @@ LegalCopyright = "Risk of Thunder"
 eframe = { version = "0.23.0", features = ["persistence"] }
 # (debug) uncomment to see where controls are rendered from
 # egui = { features = ["callstack"]}
-egui_extras = { version = "0.23.0", features = ["all_loaders"] }
+font-awesome = "0.2.0"
 serde = { version = "1.0.163", features = ["derive"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"

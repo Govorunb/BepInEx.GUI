@@ -167,6 +167,8 @@ impl Config {
                 (Button, FontId::new(self.font_size, FontFamily::Proportional)),
                 (Heading, FontId::new(self.font_size * 1.25, FontFamily::Proportional)),
                 (Monospace, FontId::new(self.font_size, FontFamily::Monospace)),
+                (Name("fa-regular".into()), FontId::new(self.font_size * 1.25, FontFamily::Name("fa-regular".into()))),
+                (Name("fa-brands".into()), FontId::new(self.font_size * 1.25, FontFamily::Name("fa-brands".into()))),
             ]
             .into()
         });

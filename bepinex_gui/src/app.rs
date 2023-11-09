@@ -80,8 +80,6 @@ impl BepInExGUI {
             self.config = eframe::get_value(storage, NAME).unwrap_or_default();
         }
 
-        egui_extras::install_image_loaders(&cc.egui_ctx);
-
         theme::configure_fonts(&cc.egui_ctx);
 
         if self.config.dark_mode {

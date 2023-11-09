@@ -30,7 +30,7 @@ pub fn highlight_path_in_explorer(file: &Path) {
         #[cfg(target_os = "windows")]
         {
             if let Some(s) = file.to_str() {
-                let mut s = s.replace('/', r#"\"#);
+                let mut s = s.replace('/', r"\");
                 s.push('\"');
                 let s = s.as_str();
 

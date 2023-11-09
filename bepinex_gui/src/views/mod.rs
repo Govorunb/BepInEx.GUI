@@ -2,19 +2,20 @@ use std::path::PathBuf;
 
 use eframe::{
     self,
-    egui::{include_image, Context, Image, TextStyle, TopBottomPanel, Ui, Visuals},
-    emath::Vec2,
+    egui::{Context, TextStyle, TopBottomPanel, Ui, Visuals, Layout, RichText},
+    emath::{Vec2, Align},
 };
+use font_awesome::chars;
 use sysinfo::Pid;
 
 use crate::{
     app::BepInExGUI,
     backend::{file_explorer_utils, thunderstore},
     data::bepinex_log,
-    views::components::button_responsive_img_widget,
+    views::components::button_responsive_text_widget,
 };
 
-use self::components::{button_responsive_img, button};
+use self::components::{button, button_responsive_text};
 
 pub mod components;
 pub mod disclaimer;
@@ -59,7 +60,8 @@ impl BepInExGUI {
                 ui.spacing_mut().item_spacing.y = 1.;
 
                 for (i, tab) in self.tabs.iter().enumerate() {
-                    if button(tab.name(), ui, button_size, TextStyle::Heading).clicked() {
+                    let name_text = RichText::new(tab.name()).text_style(TextStyle::Heading);
+                    if button(name_text, ui, button_size).clicked() {
                         self.config.selected_tab_index = i;
                     }
                 } 
@@ -84,31 +86,35 @@ impl BepInExGUI {
         bepinex_log_output_file_full_path: &PathBuf,
         target_process_id: Pid,
     ) {
-        ui.horizontal(|ui| {
-            ui.spacing_mut().item_spacing = Vec2::new(ui.available_width() / 8., 0.);
-            let mut avail_space = ui.available_size();
-            avail_space.x -= ui.spacing().item_spacing.x * 2.;
-            let button_size = Vec2::new(avail_space.x / 3., avail_space.y);
-            
-            ui.add_space(0.); // insert item_spacing before first element
-            render_open_game_folder_button(ui, button_size, game_folder_full_path);
-            
-            render_copy_log_file_button(ui, button_size, bepinex_log_output_file_full_path);
-            
-            render_open_modding_discord_button(ui, button_size, target_process_id);
-        });
-        ui.add_space(25.0);
+        ui.allocate_ui_with_layout(
+            Vec2::new(ui.available_width(), 50.),
+            Layout::left_to_right(Align::Center),
+            |ui| {
+                let spacing = ui.available_width() * 0.05;
+                ui.spacing_mut().item_spacing = Vec2::new(spacing, 0.);
+                let mut avail_space = ui.available_size();
+                avail_space.x -= spacing * 4.;
+                let button_size = Vec2::new(avail_space.x / 3., avail_space.y);
+                
+                ui.add_space(spacing);
+                render_open_game_folder_button(ui, button_size, game_folder_full_path);
+                // space added automatically
+                render_copy_log_file_button(ui, button_size, bepinex_log_output_file_full_path);
+                // space added automatically
+                render_open_modding_discord_button(ui, button_size, target_process_id);
+                ui.add_space(spacing);
+            },
+        );
+        ui.add_space(15.0);
     }
 }
 
 fn render_open_game_folder_button(ui: &mut Ui, button_size: Vec2, game_folder_full_path: &PathBuf) {
-    let text: &str = "Open Game Folder";
-    let img = Image::new(include_image!(
-        "../../assets/icons/fa-regular folder-open.png"
-    ))
-    .tint(ui.visuals().text_color());
+    let text = RichText::new("Open Game Folder");
+    let short = RichText::new(chars::FOLDER_OPEN)
+        .text_style(TextStyle::Name("fa-regular".into()));
 
-    if button_responsive_img(text, img, ui, button_size, TextStyle::Button).clicked() {
+    if button_responsive_text(text, short, ui, button_size).clicked() {
         file_explorer_utils::open_path_in_explorer(game_folder_full_path);
     }
 }
@@ -118,13 +124,11 @@ fn render_copy_log_file_button(
     button_size: Vec2,
     bepinex_log_output_file_full_path: &PathBuf,
 ) {
-    let text: &str = "Copy Log File";
-    let img = Image::new(include_image!(
-        "../../assets/icons/fa-regular clipboard.png"
-    ))
-    .tint(ui.visuals().text_color());
+    let text = RichText::new("Copy Log File");
+    let short = RichText::new(chars::CLIPBOARD) // clipboard
+        .text_style(TextStyle::Name("fa-regular".into()));
 
-    if button_responsive_img(text, img, ui, button_size, TextStyle::Button).clicked() {
+    if button_responsive_text(text, short, ui, button_size).clicked() {
         bepinex_log::file::open_file_explorer_to_file_and_zip_it_if_needed(
             bepinex_log_output_file_full_path,
             "zipped_log.zip",
@@ -135,16 +139,17 @@ fn render_copy_log_file_button(
 fn render_open_modding_discord_button(ui: &mut Ui, button_size: Vec2, target_process_id: Pid) {
     static mut HAS_DISCORD: bool = true;
 
-    let text: &str = "Modding Discord";
-    let img = Image::new(include_image!("../../assets/icons/discord.png"))
-        .tint(ui.visuals().text_color());
+    let text = RichText::new("Modding Discord");
+    let short = RichText::new('\u{f392}') // discord
+        .text_style(TextStyle::Name("fa-brands".into()));
 
-    let button = button_responsive_img_widget(text, img, ui, button_size, TextStyle::Button);
+    let button = button_responsive_text_widget(text.clone(), short, ui, button_size);
 
     unsafe {
         let button_clicked = ui
             .add_enabled_ui(HAS_DISCORD, |ui| {
                 ui.add_sized(button_size, button)
+                    .on_hover_text(text)
                     .on_disabled_hover_text("No modding Discord found")
                     .clicked()
             })

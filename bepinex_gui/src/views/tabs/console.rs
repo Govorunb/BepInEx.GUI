@@ -17,7 +17,7 @@ use crate::{
         bepinex_log::{BepInExLogEntry, LogLevel},
         bepinex_mod::BepInExMod,
     },
-    views::{self, disclaimer::Disclaimer, components::button},
+    views::{self, disclaimer::Disclaimer, components::button, utils::egui::measure_widget_text},
 };
 
 use super::Tab;
@@ -388,36 +388,26 @@ Please use the buttons below and use the "Copy Log File" button, and drag and dr
         ui: &mut Ui,
         data: &AppLaunchConfig,
     ) {
-        let kill_game_btn_text = "Close Game & GUI";
-        let kill_game_btn_size = views::utils::egui::compute_text_size(
-            ui,
-            kill_game_btn_text,
-            Some(TextStyle::Heading),
-            false,
-        ).unwrap();
+        let kill_game_btn_text = RichText::new("Close Game & GUI").heading();
+        let kill_game_btn_size = measure_widget_text(ui, kill_game_btn_text.clone());
 
-        if button(kill_game_btn_text, ui, kill_game_btn_size, TextStyle::Heading)
-            .clicked()
+        if button(kill_game_btn_text, ui, kill_game_btn_size).clicked()
         {
             self.kill_gui_and_target(data);
         }
     }
 
     fn render_pause_game_button(&mut self, ui: &mut Ui, data: &AppLaunchConfig) {
-        let pause_game_btn_text = if self.target_process_paused {
-            "Resume Game"
-        } else {
-            "Pause Game"
-        };
-        let pause_game_btn_size = views::utils::egui::compute_text_size(
-            ui,
-            pause_game_btn_text,
-            Some(TextStyle::Heading),
-            false,
-        ).unwrap();
+        let pause_game_btn_text = RichText::new(
+            if self.target_process_paused {
+                "Resume Game"
+            } else {
+                "Pause Game"
+            })
+            .heading();
+        let pause_game_btn_size = measure_widget_text(ui, pause_game_btn_text.clone());
 
-        if button(pause_game_btn_text, ui, pause_game_btn_size, TextStyle::Heading)
-            .clicked()
+        if button(pause_game_btn_text, ui, pause_game_btn_size).clicked()
         {
             let target_process_id = data.target_process_id();
 

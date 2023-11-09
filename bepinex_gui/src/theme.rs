@@ -191,17 +191,31 @@ pub fn get_dark_theme() -> egui::Style {
 
 pub fn configure_fonts(ctx: &Context) {
     let mut font_def = FontDefinitions::default();
-    font_def.font_data.insert(
-        "Comfortaa".to_string(),
-        FontData::from_static(include_bytes!("../assets/fonts/Comfortaa-Medium.ttf")),
-        // FontData::from_static(include_bytes!("../assets/fonts/MesloLGS_NF_Regular.ttf")),
-    );
+    font_def.font_data.extend([
+        (
+            "Comfortaa".to_string(),
+            FontData::from_static(include_bytes!("../assets/fonts/Comfortaa-Medium.ttf"))
+            // FontData::from_static(include_bytes!("../assets/fonts/MesloLGS_NF_Regular.ttf")),
+        ),
+        (
+            "fa-regular".to_string(),
+            FontData::from_static(include_bytes!("../assets/fonts/Font Awesome 6 Free-Regular-400.otf"))
+        ),
+        (
+            "fa-brands".to_string(),
+            FontData::from_static(include_bytes!("../assets/fonts/Font Awesome 6 Brands-Regular-400.otf"))
+        ),
+    ]);
 
     font_def
         .families
         .get_mut(&FontFamily::Proportional)
         .unwrap()
         .insert(0, "Comfortaa".to_string());
+    font_def.families.extend([
+        (FontFamily::Name("fa-regular".into()), vec!["fa-regular".to_string()]),
+        (FontFamily::Name("fa-brands".into()), vec!["fa-brands".to_string()]),
+    ]);
 
     ctx.set_fonts(font_def);
 }

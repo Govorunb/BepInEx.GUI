@@ -1,7 +1,7 @@
 use crossbeam_channel::Receiver;
 
 use eframe::{
-    egui::{self, CentralPanel, Context, Layout, ScrollArea, TopBottomPanel, TextStyle},
+    egui::{self, CentralPanel, Context, Layout, ScrollArea, TopBottomPanel, RichText},
     emath::Align,
 };
 
@@ -9,7 +9,7 @@ use crate::{
     app,
     config::{launch::AppLaunchConfig, Config},
     data::bepinex_mod::BepInExMod,
-    views,
+    views::utils::egui::measure_widget_text,
 };
 
 use super::Tab;
@@ -44,12 +44,11 @@ impl GeneralTab {
         CentralPanel::default().show(ctx, |ui| {
             if self.mods.is_empty() {
                 ui.vertical_centered_justified(|ui| {
-                    let loading_text = "Loading ⌛";
-                    let text_size =
-                        views::utils::egui::compute_text_size(ui, loading_text, Some(TextStyle::Heading), false)
-                        .unwrap();
+                    ui.style_mut().wrap = Some(false);
+                    let loading_text = RichText::new("Loading ⌛").heading();
+                    let text_size = measure_widget_text(ui, loading_text.clone());
                     ui.add_space(ui.available_height() / 2. - text_size.y);
-                    ui.heading(loading_text);
+                    ui.label(loading_text);
                 });
             } else {
                 ui.spacing_mut().scroll_bar_width = 16.;

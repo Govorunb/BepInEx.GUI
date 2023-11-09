@@ -4,7 +4,7 @@ use eframe::egui::{CentralPanel, Context, ScrollArea, Slider, TextStyle, Ui};
 
 use crate::{
     config::{launch::AppLaunchConfig, Config},
-    views::{components, utils::egui::compute_text_size},
+    views::{components, utils::egui::measure_widget_text},
 };
 
 use super::Tab;
@@ -93,7 +93,7 @@ fn render_font_size_slider(
 ) {
     let text = "Font size";
     
-    let text_width = compute_text_size(ui, text, None, false).unwrap().x;
+    let text_width = measure_widget_text(ui, text).x;
     ui.style_mut().spacing.slider_width = space.x - 5. - text_width;
 
     let slider = Slider::new(&mut gui_config.font_size, 10.0..=30.0)
@@ -154,7 +154,7 @@ fn render_switch_theme_button(
     let text = if is_dark_mode { "Switch to light theme 🌞" } else { "Switch to dark theme 🌙" };
     let emoji = if is_dark_mode { "🌞" } else { "🌙" };
 
-    if components::button_responsive_text(text, emoji, ui, space, TextStyle::Button).clicked() {
+    if components::button_responsive_text(text, emoji, ui, space).clicked() {
         gui_config.dark_mode = !gui_config.dark_mode;
         gui_config.theme_just_changed = true;
     }
