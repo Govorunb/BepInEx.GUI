@@ -8,6 +8,7 @@ use std::{
     },
 };
 
+use eframe::egui::Context;
 use serde::*;
 
 use crate::{app, data::bepinex_log::LogLevel};
@@ -19,6 +20,8 @@ pub struct Config {
     #[serde(skip)]
     pub theme_just_changed: bool,
 
+    pub font_size: f32,
+    
     pub dark_mode: bool,
 
     // For showing or not the disclaimer that explains how to report bugs / post log file in the discord
@@ -51,6 +54,7 @@ impl Default for Config {
     fn default() -> Self {
         Self {
             theme_just_changed: true,
+            font_size: 20.0,
             dark_mode: true,
             first_time: true,
             first_time_console_disclaimer: true,
@@ -150,6 +154,22 @@ impl Config {
         }
 
         Ok(())
+    }
+
+    pub fn update_text_styles(&mut self, ctx: &Context) {
+        use eframe::egui::{TextStyle::*, FontId};
+        use eframe::epaint::FontFamily;
+
+        ctx.style_mut(|style| {
+            style.text_styles = [
+                (Small, FontId::new(self.font_size * 0.75, FontFamily::Proportional)),
+                (Body, FontId::new(self.font_size, FontFamily::Proportional)),
+                (Button, FontId::new(self.font_size, FontFamily::Proportional)),
+                (Heading, FontId::new(self.font_size * 1.25, FontFamily::Proportional)),
+                (Monospace, FontId::new(self.font_size, FontFamily::Monospace)),
+            ]
+            .into()
+        });
     }
 }
 

@@ -80,6 +80,8 @@ impl BepInExGUI {
             self.config = eframe::get_value(storage, NAME).unwrap_or_default();
         }
 
+        egui_extras::install_image_loaders(&cc.egui_ctx);
+
         theme::configure_fonts(&cc.egui_ctx);
 
         if self.config.dark_mode {
@@ -87,6 +89,7 @@ impl BepInExGUI {
         } else {
             cc.egui_ctx.set_visuals(egui::Visuals::light());
         }
+        self.config.update_text_styles(&cc.egui_ctx);
 
         self.start_thread_exit_gui_if_target_process_not_alive(
             self.app_launch_config.target_process_id(),

@@ -2,9 +2,8 @@ use std::path::PathBuf;
 
 use eframe::{
     self,
-    egui::{Button, Context, RichText, TopBottomPanel, Ui, Visuals},
+    egui::{include_image, Context, Image, TextStyle, TopBottomPanel, Ui, Visuals},
     emath::Vec2,
-    epaint::FontId,
 };
 use sysinfo::Pid;
 
@@ -12,7 +11,10 @@ use crate::{
     app::BepInExGUI,
     backend::{file_explorer_utils, thunderstore},
     data::bepinex_log,
+    views::components::button_responsive_img_widget,
 };
+
+use self::components::{button_responsive_img, button};
 
 pub mod components;
 pub mod disclaimer;
@@ -27,6 +29,7 @@ impl BepInExGUI {
             } else {
                 ctx.set_visuals(Visuals::light());
             }
+            self.config.update_text_styles(ctx);
 
             self.config.theme_just_changed = false;
         }
@@ -56,16 +59,10 @@ impl BepInExGUI {
                 ui.spacing_mut().item_spacing.y = 1.;
 
                 for (i, tab) in self.tabs.iter().enumerate() {
-                    if ui
-                        .add_sized(
-                            button_size,
-                            Button::new(RichText::new(tab.name()).font(FontId::proportional(20.0))),
-                        )
-                        .clicked()
-                    {
+                    if button(tab.name(), ui, button_size, TextStyle::Heading).clicked() {
                         self.config.selected_tab_index = i;
                     }
-                }
+                } 
             });
 
             ui.add_space(10.);
@@ -83,52 +80,35 @@ impl BepInExGUI {
 
     pub fn render_useful_buttons_footer(
         ui: &mut Ui,
-        _ctx: &Context,
         game_folder_full_path: &PathBuf,
         bepinex_log_output_file_full_path: &PathBuf,
         target_process_id: Pid,
     ) {
-        ui.add_space(3.0);
-
         ui.horizontal(|ui| {
-            const FONT_SIZE: f32 = 18.;
-            // let mut FONT_SIZE = 20. * (ui.available_width() / 900.);
-
-            let mut button_size = ui.available_size() / 5.;
-            let spacing = ui.available_width() / 8.;
-            button_size.y += 25.;
-
-            let placement_cursor = ui.cursor();
-            ui.add_space(spacing * 0.5);
-
-            render_open_game_folder_button(ui, button_size, game_folder_full_path, FONT_SIZE);
-
-            ui.set_cursor(placement_cursor);
-            ui.add_space(spacing * 3.25);
-
-            render_copy_log_file_button(
-                ui,
-                button_size,
-                bepinex_log_output_file_full_path,
-                FONT_SIZE,
-            );
-
-            ui.set_cursor(placement_cursor);
-            ui.add_space(spacing * 5.85);
-
-            render_open_modding_discord_button(ui, button_size, target_process_id, FONT_SIZE);
+            ui.spacing_mut().item_spacing = Vec2::new(ui.available_width() / 8., 0.);
+            let mut avail_space = ui.available_size();
+            avail_space.x -= ui.spacing().item_spacing.x * 2.;
+            let button_size = Vec2::new(avail_space.x / 3., avail_space.y);
+            
+            ui.add_space(0.); // insert item_spacing before first element
+            render_open_game_folder_button(ui, button_size, game_folder_full_path);
+            
+            render_copy_log_file_button(ui, button_size, bepinex_log_output_file_full_path);
+            
+            render_open_modding_discord_button(ui, button_size, target_process_id);
         });
-        ui.add_space(25.);
+        ui.add_space(25.0);
     }
 }
 
-fn render_open_game_folder_button(
-    ui: &mut Ui,
-    button_size: Vec2,
-    game_folder_full_path: &PathBuf,
-    font_size: f32,
-) {
-    if components::button("Open Game Folder", ui, button_size, font_size) {
+fn render_open_game_folder_button(ui: &mut Ui, button_size: Vec2, game_folder_full_path: &PathBuf) {
+    let text: &str = "Open Game Folder";
+    let img = Image::new(include_image!(
+        "../../assets/icons/fa-regular folder-open.png"
+    ))
+    .tint(ui.visuals().text_color());
+
+    if button_responsive_img(text, img, ui, button_size, TextStyle::Button).clicked() {
         file_explorer_utils::open_path_in_explorer(game_folder_full_path);
     }
 }
@@ -137,9 +117,14 @@ fn render_copy_log_file_button(
     ui: &mut Ui,
     button_size: Vec2,
     bepinex_log_output_file_full_path: &PathBuf,
-    font_size: f32,
 ) {
-    if components::button("Copy Log File", ui, button_size, font_size) {
+    let text: &str = "Copy Log File";
+    let img = Image::new(include_image!(
+        "../../assets/icons/fa-regular clipboard.png"
+    ))
+    .tint(ui.visuals().text_color());
+
+    if button_responsive_img(text, img, ui, button_size, TextStyle::Button).clicked() {
         bepinex_log::file::open_file_explorer_to_file_and_zip_it_if_needed(
             bepinex_log_output_file_full_path,
             "zipped_log.zip",
@@ -147,13 +132,25 @@ fn render_copy_log_file_button(
     }
 }
 
-fn render_open_modding_discord_button(
-    ui: &mut Ui,
-    button_size: Vec2,
-    target_process_id: Pid,
-    font_size: f32,
-) {
-    if components::button("Modding Discord", ui, button_size, font_size) {
-        thunderstore::api::open_modding_discord(target_process_id);
+fn render_open_modding_discord_button(ui: &mut Ui, button_size: Vec2, target_process_id: Pid) {
+    static mut HAS_DISCORD: bool = true;
+
+    let text: &str = "Modding Discord";
+    let img = Image::new(include_image!("../../assets/icons/discord.png"))
+        .tint(ui.visuals().text_color());
+
+    let button = button_responsive_img_widget(text, img, ui, button_size, TextStyle::Button);
+
+    unsafe {
+        let button_clicked = ui
+            .add_enabled_ui(HAS_DISCORD, |ui| {
+                ui.add_sized(button_size, button)
+                    .on_disabled_hover_text("No modding Discord found")
+                    .clicked()
+            })
+            .inner;
+        if button_clicked {
+            HAS_DISCORD = thunderstore::api::open_modding_discord(target_process_id);
+        }
     }
 }

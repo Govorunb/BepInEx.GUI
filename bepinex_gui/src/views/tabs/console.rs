@@ -17,7 +17,7 @@ use crate::{
         bepinex_log::{BepInExLogEntry, LogLevel},
         bepinex_mod::BepInExMod,
     },
-    views::{self, disclaimer::Disclaimer},
+    views::{self, disclaimer::Disclaimer, components::button},
 };
 
 use super::Tab;
@@ -215,19 +215,12 @@ impl ConsoleTab {
     fn render_logs(&mut self, gui_config: &Config, ui: &mut eframe::egui::Ui) {
         let clip_rect = ui.painter().clip_rect();
 
-        let info_log_color = if gui_config.dark_mode {
-            Color32::WHITE
-        } else {
-            Color32::BLACK
-        };
-
         let log_count = self.logs.len();
         for i in 0..log_count {
             Self::render_log(
                 &mut self.log_heights,
                 &mut self.filter,
                 gui_config,
-                info_log_color,
                 i,
                 ui,
                 &clip_rect,
@@ -275,11 +268,11 @@ impl ConsoleTab {
         }
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn render_log(
         log_heights: &mut HashMap<usize, f32>,
         filter: &mut Filter,
         gui_config: &Config,
-        info_log_color: Color32,
         i: usize,
         ui: &mut Ui,
         clip_rect: &Rect,
@@ -307,7 +300,7 @@ impl ConsoleTab {
             return;
         }
 
-        let log_color = get_color_from_log_level(log, info_log_color, gui_config);
+        let log_color = get_color_from_log_level(log, ui.style().visuals.strong_text_color(), gui_config);
 
         let ui_log_entry = make_ui_log_entry(ui, log, log_color);
 
@@ -322,21 +315,18 @@ impl ConsoleTab {
     }
 
     fn does_log_match_text_filter(text_filter_lowercase: &String, log: &BepInExLogEntry) -> bool {
-        if !text_filter_lowercase.is_empty()
-            && !log.data_lowercase().contains(text_filter_lowercase)
-        {
-            return false;
-        }
-
-        true
+        log.data_lowercase().contains(text_filter_lowercase)
     }
 
     fn render_footer(&mut self, data: &AppLaunchConfig, gui_config: &mut Config, ctx: &Context) {
-        TopBottomPanel::bottom("footer").show(ctx, |ui| {
+        TopBottomPanel::bottom("console_footer").show(ctx, |ui| {
             ui.add_space(2.0);
 
             ui.horizontal(|ui| {
-                ui.label(RichText::new("Log Level Filtering: ").font(FontId::proportional(15.0)));
+                // TODO: calculate instead of hardcoding
+                if ui.available_width() > 250. {
+                    ui.label(RichText::new("Log Level: ").small());
+                }
 
                 let log_level_text = gui_config.log_level_filter.to_string();
                 ui.add(
@@ -347,11 +337,12 @@ impl ConsoleTab {
                     .show_value(false)
                     .text(log_level_text),
                 );
+                
+                render_auto_scroll_to_bottom_checkbox(ui, gui_config);
             });
 
             views::BepInExGUI::render_useful_buttons_footer(
                 ui,
-                ctx,
                 data.game_folder_full_path(),
                 data.bepinex_log_output_file_full_path(),
                 data.target_process_id(),
@@ -383,14 +374,8 @@ Please use the buttons below and use the "Copy Log File" button, and drag and dr
                     {
                         let elapsed = elapsed_.as_secs() as i64;
                         if 9 - elapsed >= 0 {
-                            ui.label(
-                                RichText::new((10 - elapsed).to_string())
-                                    .font(FontId::proportional(20.0)),
-                            );
-                        } else if ui
-                            .button(RichText::new("Ok").font(FontId::proportional(20.0)))
-                            .clicked()
-                        {
+                            ui.label((10 - elapsed).to_string());
+                        } else if ui.button("Ok").clicked() {
                             gui_config.first_time_console_disclaimer = false;
                         }
                     }
@@ -398,51 +383,40 @@ Please use the buttons below and use the "Copy Log File" button, and drag and dr
         });
     }
 
-    fn render_kill_gui_and_game_butto(
+    fn render_kill_gui_and_game_button(
         &mut self,
         ui: &mut Ui,
-        pause_game_btn_size: Vec2,
         data: &AppLaunchConfig,
     ) {
-        let kill_game_btn_text = "Kill GUI & Game";
-        let kill_game_btn_size =
-            views::utils::egui::compute_text_size(ui, kill_game_btn_text, true, false, None);
+        let kill_game_btn_text = "Close Game & GUI";
+        let kill_game_btn_size = views::utils::egui::compute_text_size(
+            ui,
+            kill_game_btn_text,
+            Some(TextStyle::Heading),
+            false,
+        ).unwrap();
 
-        ui.add_space(ui.spacing().item_spacing.x.mul_add(
-            -4.,
-            ui.available_width() - pause_game_btn_size.x - kill_game_btn_size.x,
-        ));
-
-        if ui
-            .add(Button::new(
-                RichText::new(kill_game_btn_text).text_style(egui::TextStyle::Heading),
-            ))
+        if button(kill_game_btn_text, ui, kill_game_btn_size, TextStyle::Heading)
             .clicked()
         {
             self.kill_gui_and_target(data);
         }
     }
 
-    fn render_pause_game_button(&mut self, ui: &mut Ui, data: &AppLaunchConfig) -> Vec2 {
+    fn render_pause_game_button(&mut self, ui: &mut Ui, data: &AppLaunchConfig) {
         let pause_game_btn_text = if self.target_process_paused {
             "Resume Game"
         } else {
             "Pause Game"
         };
-        let pause_game_btn_size =
-            views::utils::egui::compute_text_size(ui, pause_game_btn_text, true, false, None);
+        let pause_game_btn_size = views::utils::egui::compute_text_size(
+            ui,
+            pause_game_btn_text,
+            Some(TextStyle::Heading),
+            false,
+        ).unwrap();
 
-        ui.add_space(
-            ui.spacing()
-                .item_spacing
-                .x
-                .mul_add(-2., ui.available_width() - pause_game_btn_size.x),
-        );
-
-        if ui
-            .add(Button::new(
-                RichText::new(pause_game_btn_text).text_style(egui::TextStyle::Heading),
-            ))
+        if button(pause_game_btn_text, ui, pause_game_btn_size, TextStyle::Heading)
             .clicked()
         {
             let target_process_id = data.target_process_id();
@@ -453,27 +427,15 @@ Please use the buttons below and use the "Copy Log File" button, and drag and dr
                 self.target_process_paused = process::suspend(target_process_id);
             }
         }
-        pause_game_btn_size
     }
 
-    fn render_log_text_filter_input(
-        &mut self,
-        ui: &mut Ui,
-        mods_combo_box: &Response,
-        gui_config: &mut Config,
-    ) {
+    fn render_log_text_filter_input(&mut self, ui: &mut Ui, mods_combo_box: &Response) {
         if ui
             .add_sized(
                 mods_combo_box.rect.size(),
                 TextEdit::singleline(&mut self.filter.text)
-                    .text_color(if gui_config.dark_mode {
-                        Color32::WHITE
-                    } else {
-                        Color32::BLACK
-                    })
-                    .hint_text(
-                        WidgetText::from("Filter Text").color(ui.style().visuals.text_color()),
-                    ),
+                    .text_color(ui.style().visuals.strong_text_color())
+                    .hint_text("Filter Text"),
             )
             .changed()
         {
@@ -538,10 +500,8 @@ fn make_log_render_decision(
 }
 
 fn render_loading_text(ui: &mut Ui) {
-    ui.vertical_centered_justified(|ui| {
+    ui.centered_and_justified(|ui| {
         let loading_text = "Loading ⌛";
-        let text_size = views::utils::egui::compute_text_size(ui, loading_text, true, false, None);
-        ui.add_space(ui.available_height() / 2. - text_size.y);
         ui.heading(loading_text);
     });
 }
@@ -556,6 +516,7 @@ fn make_ui_log_entry(ui: &mut Ui, log: &mut BepInExLogEntry, log_color: Color32)
 
 const ORANGE: Color32 = Color32::from_rgb(255, 128, 0);
 fn get_color_from_log_level(log: &mut BepInExLogEntry, info_log_color: Color32, gui_config: &Config) -> Color32 {
+    // TODO: put the colors in a style
     match log.level() {
         LogLevel::None | LogLevel::Fatal => if gui_config.dark_mode {Color32::RED} else {Color32::DARK_RED},
         LogLevel::Error => if gui_config.dark_mode {Color32::LIGHT_RED} else {Color32::RED},
@@ -575,27 +536,22 @@ impl Tab for ConsoleTab {
     fn update_top_panel(
         &mut self,
         data: &AppLaunchConfig,
-        gui_config: &mut Config,
+        _gui_config: &mut Config,
         ui: &mut eframe::egui::Ui,
     ) {
         egui::menu::bar(ui, move |ui| {
             // controls
-            ui.with_layout(Layout::left_to_right(Align::default()), move |ui| {
-                let cur_cursor_rect = ui.cursor();
-
-                ui.label(RichText::new("Log Filtering: ").font(FontId::proportional(20.0)));
+            ui.with_layout(Layout::left_to_right(Align::Center), move |ui| {
+                ui.label(RichText::new("Log Filtering: ").small());
                 let mods_combo_box = self.render_log_mod_filter(ui);
-                self.render_log_text_filter_input(ui, &mods_combo_box, gui_config);
-
-                render_auto_scroll_to_bottom_checkbox(ui, gui_config);
-
-                ui.set_cursor(cur_cursor_rect);
-
-                let pause_game_btn_size = self.render_pause_game_button(ui, data);
-
-                ui.set_cursor(cur_cursor_rect);
-
-                self.render_kill_gui_and_game_butto(ui, pause_game_btn_size, data);
+                self.render_log_text_filter_input(ui, &mods_combo_box);
+                
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+    
+                    self.render_pause_game_button(ui, data);
+    
+                    self.render_kill_gui_and_game_button(ui, data);
+                });
             });
         });
     }
@@ -629,10 +585,11 @@ impl Tab for ConsoleTab {
 }
 
 fn render_auto_scroll_to_bottom_checkbox(ui: &mut Ui, gui_config: &mut Config) {
-    ui.checkbox(
-        &mut gui_config.log_auto_scroll_to_bottom,
-        "Auto Scroll to Bottom",
-    );
+    let text = "Auto Scroll to Bottom";
+
+    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+        ui.checkbox(&mut gui_config.log_auto_scroll_to_bottom, text);
+    });
 }
 
 impl ConsoleTab {

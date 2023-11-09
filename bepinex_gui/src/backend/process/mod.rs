@@ -8,6 +8,8 @@ use std::thread;
 
 use sysinfo::Pid;
 use sysinfo::ProcessExt;
+use sysinfo::ProcessRefreshKind;
+use sysinfo::RefreshKind;
 use sysinfo::SystemExt;
 use winapi::um::winnt::HANDLE;
 use winapi::{
@@ -129,7 +131,9 @@ pub fn spawn_thread_is_process_dead(
 }
 
 pub fn kill(target_process_id: Pid, callback: impl FnOnce()) {
-    let sys = sysinfo::System::new_all();
+    let sys = sysinfo::System::new_with_specifics(
+        RefreshKind::new().with_processes(ProcessRefreshKind::new())
+    );
     if let Some(proc) = sys.process(target_process_id) {
         proc.kill();
         callback();

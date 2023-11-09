@@ -1,9 +1,8 @@
 use crossbeam_channel::Receiver;
 
 use eframe::{
-    egui::{self, CentralPanel, Context, Label, Layout, RichText, ScrollArea, TopBottomPanel},
+    egui::{self, CentralPanel, Context, Layout, ScrollArea, TopBottomPanel, TextStyle},
     emath::Align,
-    epaint::FontId,
 };
 
 use crate::{
@@ -29,12 +28,11 @@ impl GeneralTab {
     }
 
     fn render_footer(&mut self, data: &AppLaunchConfig, ctx: &Context) {
-        TopBottomPanel::bottom("footer").show(ctx, |ui| {
+        TopBottomPanel::bottom("general_footer").show(ctx, |ui| {
             ui.add_space(25.0);
 
-            app::BepInExGUI::render_useful_buttons_footer(
+            app::BepInExGUI::render_useful_buttons_footer( 
                 ui,
-                ctx,
                 data.game_folder_full_path(),
                 data.bepinex_log_output_file_full_path(),
                 data.target_process_id(),
@@ -48,7 +46,8 @@ impl GeneralTab {
                 ui.vertical_centered_justified(|ui| {
                     let loading_text = "Loading ⌛";
                     let text_size =
-                        views::utils::egui::compute_text_size(ui, loading_text, true, false, None);
+                        views::utils::egui::compute_text_size(ui, loading_text, Some(TextStyle::Heading), false)
+                        .unwrap();
                     ui.add_space(ui.available_height() / 2. - text_size.y);
                     ui.heading(loading_text);
                 });
@@ -65,7 +64,7 @@ impl GeneralTab {
 
     fn render_mods(&self, _gui_config: &Config, ui: &mut egui::Ui) {
         for mod_ in self.mods.as_slice() {
-            ui.add(Label::new(RichText::new(mod_.to_string())));
+            ui.label(mod_.to_string());
         }
     }
 
@@ -94,13 +93,13 @@ impl Tab for GeneralTab {
                     "Modded {} is loading, you can close this window at any time.",
                     data.target_name()
                 );
-                ui.label(RichText::new(target_is_loading_text).font(FontId::proportional(20.0)));
+                ui.label(target_is_loading_text);
             });
         });
 
         let loaded_mod_count = self.mods.len();
         let loaded_mods_text = format!("Loaded Mods: {loaded_mod_count}");
-        ui.label(RichText::new(loaded_mods_text).font(FontId::proportional(20.0)));
+        ui.label(loaded_mods_text);
     }
 
     fn update(

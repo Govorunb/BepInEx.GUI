@@ -19,8 +19,10 @@ LegalCopyright = "Risk of Thunder"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-eframe = { git = "https://github.com/xiaoxiao921/egui/", features = ["persistence"] }
-#eframe = { path = "C:/Users/Quentin/source/repos/egui/crates/eframe", features = ["persistence"] }
+eframe = { version = "0.23.0", features = ["persistence"] }
+# (debug) uncomment to see where controls are rendered from
+# egui = { features = ["callstack"]}
+egui_extras = { version = "0.23.0", features = ["all_loaders"] }
 serde = { version = "1.0.163", features = ["derive"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
@@ -29,12 +31,16 @@ clipboard = "0.5.0"
 directories-next = "2.0.0"
 serde_json = "1.0.96"
 reqwest = { version = "0.11.17", features = ["blocking", "gzip"] }
-winapi = {version = "0.3.9", features = ["tlhelp32"] }
+winapi = {version = "0.3.9", features = ["tlhelp32", "impl-default"] }
 strum = { version = "0.24.1", features = ["derive"] }
 zip = "0.6.6"
 sysinfo = "0.29.0"
 crossbeam-channel = "0.5.8"
 image = "0.24.6"
+
+[dev-dependencies]
+component = "0.1.0"
+clippy = "0.0.302"
 
 # all of this is taken from https://github.com/johnthagen/min-sized-rust
 [profile.release]

@@ -72,13 +72,15 @@ fn find_modding_discord_from_target_process_name(
     Err(format!("No community matching target process name {proc_name}").into())
 }
 
-pub fn open_modding_discord(target_process_id: Pid) {
+pub fn open_modding_discord(target_process_id: Pid) -> bool {
     match find_modding_discord_from_target_process_name(target_process_id) {
         Ok(discord_name) => {
             file_explorer_utils::open_path_in_explorer(&PathBuf::from(discord_name));
+            true
         }
         Err(err) => {
             tracing::error!("Failed finding discord, {}", err);
+            false
         }
     }
 }
