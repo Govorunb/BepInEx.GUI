@@ -46,7 +46,7 @@ fn main() {
 
 fn load_icon() -> eframe::IconData {
     let (icon_rgba, icon_width, icon_height) = {
-        let icon = include_bytes!("../assets/ror2_discord_server_icon.png");
+        let icon = include_bytes!("../assets/icons/ror2_discord_server_icon.png");
         let image = image::load_from_memory(icon)
             .expect("Failed to open icon path")
             .into_rgba8();
