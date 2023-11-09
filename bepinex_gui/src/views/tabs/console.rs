@@ -499,7 +499,7 @@ fn render_loading_text(ui: &mut Ui) {
 fn make_ui_log_entry(ui: &mut Ui, log: &mut BepInExLogEntry, log_color: Color32) -> Response {
     let ui_log_entry = ui.add(SelectableLabel::new(
         log.is_selected,
-        RichText::new(log.data()).color(log_color),
+        RichText::new(log.data()).color(log_color).text_style(TextStyle::Small),
     ));
     ui_log_entry
 }
