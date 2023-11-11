@@ -21,12 +21,15 @@ fn main() {
 
     let args: Vec<String> = env::args().collect();
 
-    let gui = app::BepInExGUI::new(AppLaunchConfig::from(&args)
-        .unwrap_or_else(AppLaunchConfig::default));
+    let init_config = AppLaunchConfig::from(&args).unwrap_or_default();
+    let gui = app::BepInExGUI::new(init_config.clone());
 
     let native_options = eframe::NativeOptions {
         min_window_size: Some(Vec2::new(240., 270.)),
         initial_window_size: Some(Vec2::new(1034., 520.)),
+        window_builder: Some(Box::new(move |builder| {
+            builder.with_title(init_config.window_title())
+        })),
 
         icon_data: Some(load_icon()),
 

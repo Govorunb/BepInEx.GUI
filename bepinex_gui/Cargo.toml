@@ -39,7 +39,6 @@ crossbeam-channel = "0.5.8"
 image = "0.24.6"
 
 [dev-dependencies]
-component = "0.1.0"
 clippy = "0.0.302"
 
 # all of this is taken from https://github.com/johnthagen/min-sized-rust

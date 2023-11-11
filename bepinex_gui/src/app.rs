@@ -33,7 +33,7 @@ pub struct BepInExGUI {
 
     pub log_receiver_thread: Option<LogReceiver>,
 
-    pub is_window_title_set: bool,
+    pub should_update_window_title: Arc<AtomicBool>,
 
     pub dark_theme: egui::Style,
 }
@@ -58,20 +58,26 @@ impl App for BepInExGUI {
     }
 }
 
+impl Default for BepInExGUI {
+    fn default() -> Self {
+        Self {
+            app_launch_config: AppLaunchConfig::default(),
+            config: Config::default(),
+            disclaimer: Disclaimer::default(),
+            should_exit_app: Arc::default(),
+            tabs: Vec::default(),
+            log_receiver_thread: Option::default(),
+            should_update_window_title: Arc::default(),
+            dark_theme: theme::get_dark_theme(),
+        }
+    }
+}
+
 impl BepInExGUI {
     pub fn new(init_config: AppLaunchConfig) -> Self {
         Self {
             app_launch_config: init_config,
-            config: Default::default(),
-            disclaimer: Disclaimer {
-                first_time_showing_it: true,
-                time_when_disclaimer_showed_up: None,
-            },
-            should_exit_app: Arc::new(AtomicBool::new(false)),
-            tabs: vec![],
-            log_receiver_thread: None,
-            is_window_title_set: false,
-            dark_theme: theme::get_dark_theme(),
+            ..Default::default()
         }
     }
 

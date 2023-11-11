@@ -1,6 +1,6 @@
 use std::sync::atomic::Ordering;
 
-use eframe::egui::{CentralPanel, Context, ScrollArea, Slider, TextStyle, Ui};
+use eframe::{egui::{CentralPanel, Context, ScrollArea, Slider, TextStyle, Ui}, epaint::Vec2};
 
 use crate::{
     config::{launch::AppLaunchConfig, Config},
@@ -29,60 +29,55 @@ impl SettingsTab {
 
     fn render_split_horizontally(&mut self, gui_config: &mut Config, ui: &mut Ui) {
         ui.horizontal_centered(|ui| {
-            let total_width = ui.available_width();
+            let space = ui.available_size();
+            let button_size = space / 2.;
+            
             ui.vertical(|ui| {
-                ui.set_width(total_width / 2.);
+                ui.set_max_width(space.x / 2.);
                 ui.vertical_centered(|ui| {
-                    ui.heading("Visual");
-                    let mut button_size = ui.available_size();
-
-                    //button_size.x *= 0.90; // horizontal margin
-                    button_size.y /= 2.;
-
-                    render_font_size_slider(gui_config, ui, button_size);
-
-                    render_switch_theme_button(gui_config, ui, button_size);
+                    self.render_visual_settings(ui, gui_config, button_size);
                 });
             });
             ui.separator();
 
             ui.vertical_centered(|ui| {
-                //ui.set_width(total_width / 2.);
-                ui.heading("Behaviour");
-
-                let mut button_size = ui.available_size() / 2.;
-                button_size.x = ui.available_width();
-                render_close_window_when_game_loaded_checkbox(ui, button_size, gui_config);
-
-                render_close_window_when_game_closes_checkbox(gui_config, ui, button_size);
+                self.render_behaviour_settings(ui, gui_config, button_size);
             });
         });
     }
 
     fn render_split_vertically(&mut self, gui_config: &mut Config, ui: &mut Ui) {
         ScrollArea::vertical().show(ui, |ui| {
-            ui.set_width(ui.available_width() - 20.);
             let mut button_size = ui.available_size();
             button_size.x *= 0.90; // horizontal margin
             button_size.y /= 2.;
             button_size.y = button_size.y.min(100.);
-            ui.vertical_centered_justified(|ui| {
-                ui.heading("Visual");
 
-                render_switch_theme_button(gui_config, ui, button_size);
-                
-                render_font_size_slider(gui_config, ui, button_size);
+            ui.vertical_centered_justified(|ui| {
+                self.render_visual_settings(ui, gui_config, button_size);
             });
             ui.separator();
 
             ui.vertical_centered_justified(|ui| {
-                ui.heading("Behaviour");
-
-                render_close_window_when_game_loaded_checkbox(ui, button_size, gui_config);
-
-                render_close_window_when_game_closes_checkbox(gui_config, ui, button_size);
+                self.render_behaviour_settings(ui, gui_config, button_size);
             });
         });
+    }
+
+    fn render_visual_settings(&mut self, ui: &mut Ui, gui_config: &mut Config, button_size: Vec2) {
+        ui.heading("Visual");
+
+        render_switch_theme_button(gui_config, ui, button_size);
+        
+        render_font_size_slider(gui_config, ui, button_size);
+    }
+
+    fn render_behaviour_settings(&mut self, ui: &mut Ui, gui_config: &mut Config, button_size: Vec2) {
+        ui.heading("Behaviour");
+
+        render_close_window_when_game_loaded_checkbox(ui, button_size, gui_config);
+
+        render_close_window_when_game_closes_checkbox(gui_config, ui, button_size);
     }
 }
 
@@ -98,6 +93,7 @@ fn render_font_size_slider(
 
     let slider = Slider::new(&mut gui_config.font_size, 10.0..=30.0)
         .step_by(1.0)
+        .fixed_decimals(0)
         .text(text)
         .trailing_fill(true);
     if ui.add(slider).changed() {

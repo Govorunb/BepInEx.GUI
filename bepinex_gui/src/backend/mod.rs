@@ -14,11 +14,9 @@ pub mod window;
 
 impl BepInExGUI {
     pub(crate) fn backend_update(&mut self, frame: &mut Frame) {
-        // Ideally this would be done in a init function, not constantly checked in an update function
-        // L from eframe
-        if !self.is_window_title_set {
+        // surely at some point something will need this (clueless)
+        if self.should_update_window_title.swap(false, Ordering::AcqRel) {
             frame.set_window_title(self.app_launch_config.window_title());
-            self.is_window_title_set = true;
         }
 
         if self.should_exit_app.load(Ordering::Relaxed) {

@@ -428,7 +428,6 @@ dependencies = [
  "byteorder",
  "clipboard",
  "clippy",
- "component",
  "crossbeam-channel",
  "directories-next",
  "eframe",
@@ -735,12 +734,6 @@ dependencies = [
  "bytes",
  "memchr",
 ]
-
-[[package]]
-name = "component"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c7c91726d7842f5bdb6d2abce1006ea86441ef0be753040ebec487070827c79d"
 
 [[package]]
 name = "concurrent-queue"

@@ -4,9 +4,19 @@ use eframe::egui::{Context, Label, Window};
 
 use crate::config::Config;
 
+#[derive(Debug)]
 pub struct Disclaimer {
     pub first_time_showing_it: bool,
     pub time_when_disclaimer_showed_up: Option<SystemTime>,
+}
+
+impl Default for Disclaimer {
+    fn default() -> Self {
+        Self {
+            first_time_showing_it: true,
+            time_when_disclaimer_showed_up: None,
+        }
+    }
 }
 
 pub fn show(config: &mut Config, disclaimer: &mut Disclaimer, ctx: &Context) {
