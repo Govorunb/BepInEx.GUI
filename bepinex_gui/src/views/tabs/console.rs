@@ -99,7 +99,6 @@ struct Filter {
 }
 
 struct Scroll {
-    last_log_count: usize,
     pending_scroll: Option<Vec2>,
 }
 
@@ -142,7 +141,6 @@ impl ConsoleTab {
                 selected_index_in_mods_combo_box: 0,
             },
             scroll: Scroll {
-                last_log_count: 0,
                 pending_scroll: None,
             },
             target_process_paused: false,
@@ -171,6 +169,7 @@ impl ConsoleTab {
         let scroll_area = ScrollArea::vertical()
             .drag_to_scroll(false)
             .auto_shrink([false; 2])
+            .stick_to_bottom(true)
             .show(ui, |ui| {
                 if self.log_selection.button_just_got_down {
                     self.logs.iter_mut().for_each(|log| log.is_selected = false);
@@ -233,14 +232,6 @@ impl ConsoleTab {
                 self.log_selection.index_of_first_selected_log,
                 self.log_selection.index_of_last_selected_log,
             );
-        }
-
-        if gui_config.log_auto_scroll_to_bottom
-            && self.scroll.last_log_count != log_count
-            && !self.log_selection.button_just_got_down
-        {
-            ui.scroll_with_delta(Vec2::new(0., f32::NEG_INFINITY));
-            self.scroll.last_log_count = log_count;
         }
     }
 
@@ -337,8 +328,6 @@ impl ConsoleTab {
                     .show_value(false)
                     .text(log_level_text),
                 );
-                
-                render_auto_scroll_to_bottom_checkbox(ui, gui_config);
             });
 
             views::BepInExGUI::render_useful_buttons_footer(
@@ -572,14 +561,6 @@ impl Tab for ConsoleTab {
             self.kill_gui_and_target(data);
         }
     }
-}
-
-fn render_auto_scroll_to_bottom_checkbox(ui: &mut Ui, gui_config: &mut Config) {
-    let text = "Auto Scroll to Bottom";
-
-    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-        ui.checkbox(&mut gui_config.log_auto_scroll_to_bottom, text);
-    });
 }
 
 impl ConsoleTab {

@@ -36,9 +36,6 @@ pub struct Config {
     // For remembering the selected log level filter (Console tab)
     pub log_level_filter: LogLevel,
 
-    // For remembering if the console should scroll to the bottom when a new log arrive
-    pub log_auto_scroll_to_bottom: bool,
-
     // Skipped because those fields are saved through the regular bepinex config system
     #[serde(skip)]
     pub close_window_when_game_loaded: bool,
@@ -60,7 +57,6 @@ impl Default for Config {
             first_time_console_disclaimer: true,
             selected_tab_index: 0,
             log_level_filter: LogLevel::All,
-            log_auto_scroll_to_bottom: true,
             close_window_when_game_loaded: false,
             close_window_when_game_closes: Arc::new(AtomicBool::new(true)),
             bepinex_gui_csharp_cfg_full_path: Default::default(),
