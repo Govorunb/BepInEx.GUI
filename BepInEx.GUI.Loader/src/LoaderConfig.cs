@@ -3,7 +3,7 @@ using BepInEx.Configuration;
 
 namespace BepInEx.GUI.Loader;
 
-internal static class Config
+internal static class LoaderConfig
 {
     internal const string FileName = "BepInEx.GUI.cfg";
     internal static string ConfigFilePath { get; private set; }
@@ -26,11 +26,12 @@ internal static class Config
     internal const string CloseWindowWhenGameClosesConfigDescription = "Close the graphic user interface window when the game closes";
     internal static ConfigEntry<bool> CloseWindowWhenGameClosesConfig { get; private set; }
 
-    internal static void Init(string folderFullPath)
-    {
-        ConfigFilePath = Path.Combine(folderFullPath, FileName);
-        File = new ConfigFile(ConfigFilePath, true);
+    internal static void Init(string folderFullPath) => Init(new ConfigFile(Path.Combine(folderFullPath, FileName), true));
 
+    internal static void Init(ConfigFile file)
+    {
+        ConfigFilePath = file.ConfigFilePath;
+        File = file;
         EnableBepInExGUIConfig = File.Bind("Settings", EnableBepInExGUIConfigKey, true, EnableBepInExGUIConfigDescription);
 
         OpenEvenWhenBepInExConsoleIsEnabled = File.Bind("Settings", OpenEvenWhenBepInExConsoleIsEnabledConfigKey, false, OpenEvenWhenBepInExConsoleIsEnabledConfigDescription);

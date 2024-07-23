@@ -17,6 +17,7 @@ internal class SendLogToClientSocket : ILogListener
     private bool _isDisposed = false;
 
     internal static SendLogToClientSocket Instance { get; private set; }
+    public LogLevel LogLevelFilter { get; } = LogLevel.All;
 
     internal SendLogToClientSocket(int freePort)
     {
@@ -34,7 +35,7 @@ internal class SendLogToClientSocket : ILogListener
 
             while (true)
             {
-                Log.Info($"[SendLogToClient] Accepting Socket.");
+                Log.LogInfo($"[SendLogToClient] Accepting Socket.");
                 var clientSocket = listener.AcceptSocket();
 
                 if (_isDisposed)
@@ -73,7 +74,7 @@ internal class SendLogToClientSocket : ILogListener
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"Error while trying to send log to socket: {e}{Environment.NewLine}Disconnecting socket.");
+                    Log.LogError($"Error while trying to send log to socket: {e}{Environment.NewLine}Disconnecting socket.");
                     return;
                 }
 
@@ -98,7 +99,6 @@ internal class SendLogToClientSocket : ILogListener
         }
     }
 
-    private bool _gotFirstLog = false;
     public void LogEvent(object sender, LogEventArgs eventArgs)
     {
         if (_isDisposed)
@@ -106,23 +106,6 @@ internal class SendLogToClientSocket : ILogListener
             return;
         }
 
-        if (eventArgs.Data == null)
-        {
-            return;
-        }
-
-        if (!_gotFirstLog)
-        {
-            if (eventArgs.Level == LogLevel.Message &&
-                eventArgs.Source.SourceName == "BepInEx" &&
-                eventArgs.Data.ToString().StartsWith("BepInEx"))
-            {
-                _gotFirstLog = true;
-            }
-        }
-        else
-        {
-            StoreLog(eventArgs);
-        }
+        StoreLog(eventArgs);
     }
 }

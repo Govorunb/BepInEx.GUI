@@ -1,9 +1,18 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
     <LangVersion>preview</LangVersion>
 	<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	<Configurations>Release BepInEx 5;Debug BepInEx 6;Debug BepInEx 5;Release BepInEx 6</Configurations>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="$(Configuration.Contains('BepInEx 5'))">
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);BEPINEX_5</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('BepInEx 6'))">
+    <TargetFramework>net6.0</TargetFramework>
+    <DefineConstants>$(DefineConstants);BEPINEX_6</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -11,10 +20,17 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
     <PackageReference Include="Microsoft.Unity.Analyzers" Version="1.10.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+  </ItemGroup>
+  
+  <ItemGroup Condition="$(Configuration.Contains('BepInEx 5'))">
+    <PackageReference Include="BepInEx.Core" Version="5.4.21" />
+  </ItemGroup>
+  <ItemGroup Condition="$(Configuration.COntains('BepInEx 6'))">
+    <PackageReference Include="BepInEx.Core" Version="6.0.0-be.688" />
+    <PackageReference Include="BepInEx.Preloader.Core" Version="6.0.0-be.688" />
   </ItemGroup>
 </Project>

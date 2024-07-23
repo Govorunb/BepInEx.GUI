@@ -12,50 +12,56 @@ using Mono.Cecil;
 
 namespace BepInEx.GUI.Loader;
 
-internal static class EntryPoint
+internal partial class EntryPoint
 {
     public static IEnumerable<string> TargetDLLs { get; } = Array.Empty<string>();
 
+    private static EntryPoint Instance = new();
+
     public static void Patch(AssemblyDefinition _) { }
 
-    public static void Initialize()
+#if BEPINEX_5
+    public static void Initialize() => Instance.Init();
+#endif
+    private void Init()
     {
-        Log.Init();
-
         try
         {
             InitializeInternal();
         }
         catch (Exception e)
         {
-            Log.Error($"Failed to initialize : ({e.GetType()}) {e.Message}{Environment.NewLine}{e}");
+            Log.LogError($"Failed to initialize : ({e.GetType()}) {e.Message}{Environment.NewLine}{e}");
         }
     }
 
-    private static void InitializeInternal()
+    private void InitializeInternal()
     {
-        Config.Init(Paths.ConfigPath);
+#if BEPINEX_5
+        LoaderConfig.Init(Paths.ConfigPath);
+#else
+        LoaderConfig.Init(Config);
+#endif
 
         var consoleConfig = (ConfigEntry<bool>)typeof(BepInPlugin).Assembly.
             GetType("BepInEx.ConsoleManager", true).
             GetField("ConfigConsoleEnabled",
             BindingFlags.Static | BindingFlags.Public).GetValue(null);
-
-        if (consoleConfig.Value && !Config.OpenEvenWhenBepInExConsoleIsEnabled.Value)
+        if (consoleConfig.Value && !LoaderConfig.OpenEvenWhenBepInExConsoleIsEnabled.Value)
         {
-            Log.Info("BepInEx regular console is enabled, aborting launch.");
+            Log.LogInfo("BepInEx regular console is enabled, aborting launch.");
         }
-        else if (Config.EnableBepInExGUIConfig.Value)
+        else if (LoaderConfig.EnableBepInExGUIConfig.Value)
         {
             FindAndLaunchGUI();
         }
         else
         {
-            Log.Info("Custom BepInEx.GUI is disabled in the config, aborting launch.");
+            Log.LogInfo("Custom BepInEx.GUI is disabled in the config, aborting launch.");
         }
     }
 
-    private static string FindGUIExecutable()
+    private string FindGUIExecutable()
     {
         foreach (var filePath in Directory.GetFiles(Paths.PatcherPluginPath, "*", SearchOption.AllDirectories))
         {
@@ -72,7 +78,7 @@ internal static class EntryPoint
                 var versInfo = FileVersionInfo.GetVersionInfo(filePath);
                 if (versInfo.FileMajorPart == 3)
                 {
-                    Log.Info($"Found bepinex_gui v3 executable in {filePath}");
+                    Log.LogInfo($"Found bepinex_gui v3 executable in {filePath}");
                     return filePath;
                 }
             }
@@ -81,9 +87,9 @@ internal static class EntryPoint
         return null;
     }
 
-    private static void FindAndLaunchGUI()
+    private void FindAndLaunchGUI()
     {
-        Log.Info("Finding and launching GUI");
+        Log.LogInfo("Finding and launching GUI");
 
         var executablePath = FindGUIExecutable();
         if (executablePath != null)
@@ -97,12 +103,12 @@ internal static class EntryPoint
             }
             else
             {
-                Log.Info("LaunchGUI failed");
+                Log.LogInfo("LaunchGUI failed");
             }
         }
         else
         {
-            Log.Info("bepinex_gui executable not found.");
+            Log.LogInfo("bepinex_gui executable not found.");
         }
     }
 
@@ -136,7 +142,7 @@ internal static class EntryPoint
             $"\"{Paths.ProcessName}\" " +
             $"\"{Paths.GameRootPath}\" " +
             $"\"{GetLogOutputFilePath()}\" " +
-            $"\"{Config.ConfigFilePath}\" " +
+            $"\"{LoaderConfig.ConfigFilePath}\" " +
             $"\"{Process.GetCurrentProcess().Id}\" " +
             $"\"{socketPort}\"";
 
