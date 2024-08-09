@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 pub struct BepInExMod {
     name: String,
     version: String,
@@ -16,8 +18,8 @@ impl BepInExMod {
     }
 }
 
-impl ToString for BepInExMod {
-    fn to_string(&self) -> String {
-        format!("{} {}", self.name, self.version)
+impl Display for BepInExMod {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_fmt(format_args!("{} {}", self.name, self.version))
     }
 }

@@ -71,7 +71,7 @@ impl Config {
 
         let mut current_settings_category_name: &str;
 
-        for line in reader.lines().flatten() {
+        for line in reader.lines().map_while(Result::ok) {
             if line.starts_with('[') {
                 current_settings_category_name = line.split('[').collect::<Vec<&str>>()[1]
                     .split(']')
@@ -143,7 +143,7 @@ impl Config {
         file.set_len(0)?;
 
         for line in &lines {
-            match file.write(line.as_bytes()) {
+            match file.write_all(line.as_bytes()) {
                 Ok(_) => {}
                 Err(err) => return Err(err),
             }
